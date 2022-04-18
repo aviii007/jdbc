@@ -142,7 +142,7 @@ public class EmployeePayrollDBService {
      * @return
      */
     private int updateDataUsingStatement(String name, double salary) {
-        String sql = String.format("UPDATE employee_payroll SET salary = %.2f where name = '%s';", salary, name);
+        String sql = String.format("UPDATE employee SET salary = %.2f where name = '%s';", salary, name);
         try (Connection connection = this.getConnection();) {
             Statement statement = connection.createStatement();
             return statement.executeUpdate(sql);
@@ -191,7 +191,7 @@ public class EmployeePayrollDBService {
      * @return
      */
     public Map<String, Double> getAverageSalaryByGender() {
-        String sql = "SELECT gender,AVG(salary) FROM employee GROUP BY gender;";
+        String sql = "SELECT gender,AVG(salary) FROM employee_payroll GROUP BY gender;";
         Map<String, Double> genderToAvgSalaryMap = new HashMap<String, Double>();
         try (Connection connection = this.getConnection()) {
             Statement statement = connection.createStatement();
