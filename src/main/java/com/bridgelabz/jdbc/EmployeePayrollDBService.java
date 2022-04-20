@@ -1,28 +1,36 @@
 package com.bridgelabz.jdbc;
 
+/**
+ * import all classes
+ */
+
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+/**
+ * create a class name as EmployeePayrollDbService
+ */
 public class EmployeePayrollDBService {
-    public enum StatementType {
-        PREPARED_STATEMENT, STATEMENT
-    }
 
     private PreparedStatement employeePayrollDataStatement;
     private static EmployeePayrollDBService employeePayrollDBService;
 
-    private EmployeePayrollDBService() {
-
+    /**
+     * create default constructor name as EmployeePayrollDbService
+     */
+    public EmployeePayrollDBService() {
     }
 
     /**
-     * For creating a singleton object
-     *
-     * @return
+     * create default constructor name as EmployeePayrollDbService
      */
     public static EmployeePayrollDBService getInstance() {
         if (employeePayrollDBService == null)
@@ -31,18 +39,69 @@ public class EmployeePayrollDBService {
     }
 
     /**
-     * Read the employee payroll data from the database
-     *
-     * @return
+     * create a method name as read data
+     * @return employeePayrollList
      */
     public List<EmployeePayrollData> readData() {
         String sql = "SELECT * FROM employee_payroll;";
-        return this.getEmployeePayrollDataUsingSQLQuery(sql);
+        /**
+         * create a list object name as employeePayrollList
+         * EmployeePayrollData is a class
+         */
+        List<EmployeePayrollData> employeePayrollList = new ArrayList<EmployeePayrollData>();
+        /**
+         * Connection :-
+         * A Connection object's database is able to provide information describing its tables,
+         * its supported SQL grammar, its stored procedures, the capabilities of this connection, and so on.
+         * This information is obtained with the getMetaData method.
+         */
+        try (Connection connection = this.getConnection();) {
+            /**
+             *  Statement :-
+             * The object used for executing a static SQL statement and returning the results it produces.
+             */
+            Statement statement = connection.createStatement();
+            /**
+             * ResultSet will be scrollable, will not show changes made by others,
+             *  and will be updatable
+             */
+            ResultSet resultSet = statement.executeQuery(sql);
+            employeePayrollList = this.getEmployeePayrollData(resultSet);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return employeePayrollList;
     }
 
     /**
-     * To get the details of a particular employee from the DB using
-     * PreparedStatement Interface
+     * create a method name as updateEmployeeData,this is parameterized method
+     * @param name of employee
+     * @param salary of employee
+     * @return update data using statment name and salary
+     */
+    public int updateEmployeeData(String name, Double salary) {
+        return this.updateEmployeeDataUsingPreparedStatement(name, salary);
+    }
+
+    /**
+     * create a method name as updateDataUsingStatement,this is parameterized method
+     * @param name of employee
+     * @param salary of employee
+     * @return sql update statement
+     */
+    private int updateEmployeeDataUsingPreparedStatement(String name, Double salary) {
+        String sql = String.format("update employee_payroll set salary = %.2f where name='%s';", salary, name);
+        try (Connection connection = this.getConnection();) {
+            PreparedStatement prepareStatement = connection.prepareStatement(sql);
+            return prepareStatement.executeUpdate(sql);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    /**
+     * create a method name as preparedStatementForEmployeeData
      */
     private void preparedStatementForEmployeeData() {
         try {
@@ -55,12 +114,9 @@ public class EmployeePayrollDBService {
     }
 
     /**
-     * Get the list of EmployeePayrollData using the assigned name setString() is
-     * used to set the assigned name value in the sql query Return all the attribute
-     * values listed for a particular name
-     *
-     * @param name
-     * @return
+     * create a method name as getEmployeePayrollData, this is parameterized method
+     * @param name of employee
+     * @return employeePayrollList
      */
     public List<EmployeePayrollData> getEmployeePayrollData(String name) {
         List<EmployeePayrollData> employeePayrollList = null;
@@ -77,33 +133,17 @@ public class EmployeePayrollDBService {
     }
 
     /**
-     * get the list of EmployeePayrollData Using the SQLQuery(
-     *
-     * @param sql
-     * @return
-     */
-    public List<EmployeePayrollData> getEmployeePayrollDataUsingSQLQuery(String sql) {
-        List<EmployeePayrollData> employeePayrollList = new ArrayList<EmployeePayrollData>();
-        try (Connection connection = this.getConnection()) {
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(sql);
-            employeePayrollList = this.getEmployeePayrollData(resultSet);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return employeePayrollList;
-    }
-
-    /**
-     * Assigning the value of the attributes in a list and return it
-     *
-     * @param resultSet
-     * @return
+     * create a method name as getEmployeePayrollData,this is parameterized method
+     * @param resultSet is employee id , salary,name, start
+     * @return employeePayrollList
      */
     private List<EmployeePayrollData> getEmployeePayrollData(ResultSet resultSet) {
         List<EmployeePayrollData> employeePayrollList = new ArrayList<>();
         try {
             while (resultSet.next()) {
+                /**
+                 * columnLable is id, name, salary,start
+                 */
                 int id = resultSet.getInt("id");
                 String name = resultSet.getString("name");
                 double salary = resultSet.getDouble("salary");
@@ -117,110 +157,31 @@ public class EmployeePayrollDBService {
     }
 
     /**
-     * Update the salary in the DB using Statement Interface
-     *
-     * @param name
-     * @param salary
-     * @return
-     */
-    public int updateEmployeeData(String name, double salary, StatementType type) {
-        switch (type) {
-            case STATEMENT:
-                return this.updateDataUsingStatement(name, salary);
-            case PREPARED_STATEMENT:
-                return this.updateDataUsingPreparedStatement(name, salary);
-            default:
-                return 0;
-        }
-    }
-
-    /**
-     * Update the salary in the DB using Statement Interface
-     *
-     * @param name
-     * @param salary
-     * @return
-     */
-    private int updateDataUsingStatement(String name, double salary) {
-        String sql = String.format("UPDATE employee SET salary = %.2f where name = '%s';", salary, name);
-        try (Connection connection = this.getConnection();) {
-            Statement statement = connection.createStatement();
-            return statement.executeUpdate(sql);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return 0;
-    }
-
-    /**
-     * Update the salary in the DB using Prepared Statement
-     *
-     * @param name
-     * @param salary
-     * @return
-     */
-    private int updateDataUsingPreparedStatement(String name, double salary) {
-        String sql = "UPDATE employee_payroll SET salary = ? WHERE NAME = ?";
-        try (Connection connection = this.getConnection();) {
-            PreparedStatement preparedStatementUpdate = connection.prepareStatement(sql);
-            preparedStatementUpdate.setDouble(1, salary);
-            preparedStatementUpdate.setString(2, name);
-            return preparedStatementUpdate.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return 0;
-    }
-
-    /**
-     * to retrieve all employees who have joined in a particular data range
-     *
-     * @param date1
-     * @param date2
-     * @return employee list in given date range
-     */
-    public List<EmployeePayrollData> getEmployeesInGivenDateRangeDB(String date1, String date2) {
-        String sql = String.format("SELECT * FROM employee_payroll where start between '%s' AND '%s';", date1, date2);
-        return this.getEmployeePayrollDataUsingSQLQuery(sql);
-    }
-
-    /**
-     * get the average salary group by the gender using hashmap that contains the
-     * key and value pair
-     *
-     * @return
-     */
-    public Map<String, Double> getAverageSalaryByGender() {
-        String sql = "SELECT gender,AVG(salary) FROM employee_payroll GROUP BY gender;";
-        Map<String, Double> genderToAvgSalaryMap = new HashMap<String, Double>();
-        try (Connection connection = this.getConnection()) {
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(sql);
-            while (resultSet.next()) {
-                String gender = resultSet.getString("gender");
-                double salary = resultSet.getDouble("AVG(salary)");
-                genderToAvgSalaryMap.put(gender, salary);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return genderToAvgSalaryMap;
-    }
-
-    /**
-     * Creating connection with the database
-     *
-     * @return
-     * @throwsSQLException
+     *  create a method name as getConnection
+     * @return connection
+     * @throws SQLException
      */
     private Connection getConnection() throws SQLException {
-        String jdbcURL = "jdbc:mysql://localhost:3306/employeepayroll?useSSL=false";
-        String userName = "root";
-        String password = "ashvini26007";
+        /**
+         * A connection (session) with a specific database.
+         * SQL statements are executed and results are returned within the context of a connection.
+         */
         Connection connection;
-        System.out.println("Connecting to database: " + jdbcURL);
-        connection = DriverManager.getConnection(jdbcURL, userName, password);
+        /**
+         * Here DRiverManager is class
+         * The basic service for managing a set of JDBC drivers.
+         * get connection is url,username,and password
+         */
+        connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/employee_payroll_service", "root",
+                "Mujawar#1118");
+        /**
+         * if connection is succsesful then show this result
+         * result =Connection successful: com.mysql.cj.jdbc.ConnectionImpl@4009e306
+         */
         System.out.println("Connection successful: " + connection);
+        /**
+         * return connection
+         */
         return connection;
     }
 }
