@@ -1,40 +1,53 @@
 package com.bridgelabz.jdbc;
 
+/**
+ * import arraylist class
+ * import list class
+ * import scanner class
+ */
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
 
+/**
+ * create a class name as EmployeePayrollService
+ */
 public class EmployeePayrollService {
+
+    /**
+     * creating a enum class.
+     * Enums can be thought of as classes which have a fixed set of constants (a variable that does not change).
+     * The enum constants are static and final implicitly
+     */
     public enum IOService {
         CONSOLE_IO, FILE_IO, DB_IO, REST_IO
     }
 
     /**
-     * To get the list of employee payroll from the database
+     * create a list
      */
     public List<EmployeePayrollData> employeePayrollList;
     private EmployeePayrollDBService employeePayrollDBService;
 
+    /**
+     * create a default constructor name as EmployeePayrollService
+     */
     public EmployeePayrollService() {
         employeePayrollDBService = EmployeePayrollDBService.getInstance();
     }
 
+    /**
+     * create a parameterized constructor name as EmployeePayrollService
+     */
     public EmployeePayrollService(List<EmployeePayrollData> employeePayrollList) {
         this();
         this.employeePayrollList = employeePayrollList;
     }
 
-    public static void main(String[] args) {
-        List<EmployeePayrollData> employeePayrollList = new ArrayList<EmployeePayrollData>();
-        EmployeePayrollService employeePayrollService = new EmployeePayrollService(employeePayrollList);
-        Scanner consoleInputReader = new Scanner(System.in);
-        employeePayrollService.readEmployeeData(consoleInputReader);
-        employeePayrollService.writeEmployeeData(IOService.CONSOLE_IO);
-    }
-
     /**
-     * @param consoleInputReader Read employee data
+     * create a method name as readEmployeeData
+     * @param consoleInputReader
      */
     public void readEmployeeData(Scanner consoleInputReader) {
         System.out.println("Enter employee ID : ");
@@ -47,25 +60,28 @@ public class EmployeePayrollService {
     }
 
     /**
-     * Write payroll data to console
+     * create a method name as writeEmployeeData
+     * @param ioService
      */
     public void writeEmployeeData(IOService ioService) {
         if (ioService.equals(IOService.CONSOLE_IO))
-            System.out.println("Writing Employee Payroll Data to Console\n" + employeePayrollList);
+            System.out.println("Employee Payroll Data to Console\n" + employeePayrollList);
         else if (ioService.equals(IOService.FILE_IO))
             new EmployeePayrollFileIOService().writeData(employeePayrollList);
     }
-
     /**
-     * @param ioService Print Data
+     * create a method name as printData,
+     * this is parameterized method
+     * @param ioService
      */
     public void printData(IOService ioService) {
         new EmployeePayrollFileIOService().printData();
     }
 
     /**
+     * create  a method name as countEntries,the method type is long
      * @param ioService
-     * @return number of entries
+     * @return enteries
      */
     public long countEntries(IOService ioService) {
         if (ioService.equals(IOService.FILE_IO))
@@ -74,84 +90,87 @@ public class EmployeePayrollService {
     }
 
     /**
+     * create a method name as readEmployeepayrollData,this is parameterized method
+     * create a list ,here EmployeePayrollData is class
      * @param ioService
-     * @return Employee Payroll Data List
+     * @return read data
      */
-    public List<EmployeePayrollData> readData(IOService ioService) {
+    public List<EmployeePayrollData> readEmployeepayrollData(IOService ioService) {
         if (ioService.equals(IOService.FILE_IO))
             return new EmployeePayrollFileIOService().readData();
-        else if (ioService.equals(IOService.DB_IO)) {
-            employeePayrollList = employeePayrollDBService.readData();
-            return employeePayrollList;
-        } else
+        else if (ioService.equals(IOService.DB_IO))
+            return new EmployeePayrollDBService().readData();
+        else
             return null;
     }
 
     /**
-     * updating EmployeeSalary from the database
-     *
-     * @param name
-     * @param salary
-     * @throwsEmployeePayrollException
+     * create a method name as updateEmployeeSalary
+     * @param name of employee
+     * @param salary employee
+     * @throws EmployeePayrollException
+     * @throws NullPointerException
      */
-    public void updateEmployeeSalary(String name, double salary, EmployeePayrollDBService.StatementType type) throws EmployeePayrollException {
-        int result = employeePayrollDBService.updateEmployeeData(name, salary, type);
-        EmployeePayrollData employeePayrollData = null;
+    public void updateEmployeeSalary(String name, double salary) throws EmployeePayrollException {
+        int result = employeePayrollDBService.updateEmployeeData(name, salary);
         if (result == 0)
-            throw new EmployeePayrollException(EmployeePayrollException.ExceptionType.UPDATE_FAIL, "Update Failed");
-        else
-            employeePayrollData = this.getEmployeePayrollData(name);
-        if (employeePayrollData != null) {
+            throw new EmployeePayrollException(Exception.DATA_NULL, "No data update is failed");
+        EmployeePayrollData employeePayrollData = this.getEmployee_payroll_Data(name);
+        if (employeePayrollData != null)
             employeePayrollData.salary = salary;
-        }
     }
 
     /**
-     * getting the employeepayroll data
-     *
-     * @param name
-     * @return Employee corresponding to name
+     * create a parameterized method name as getEmployee_payroll_Data
+     * @param name of employee
+     * @return employeePayrollData
      */
-    private EmployeePayrollData getEmployeePayrollData(String name) {
-        EmployeePayrollData employeePayrollData = this.employeePayrollList.stream()
-                .filter(employee -> employee.name.equals(name)).findFirst().orElse(null);
+    private EmployeePayrollData getEmployee_payroll_Data(String name) {
+        EmployeePayrollData employeePayrollData;
+        employeePayrollData = employeePayrollList.stream().filter(emp_Data -> emp_Data.name.equals(name)).findFirst()
+                .orElse(null);
         return employeePayrollData;
     }
 
     /**
-     * method to check payroll is synced with databse
-     *
-     * @param name
-     * @return true if data is in sync
+     * create a method name as checkEmployeePayrollInSyncWithDB,
+     * this is parameterized method
+     * @param name of employee
+     * @return name of employee
      */
     public boolean checkEmployeePayrollInSyncWithDB(String name) {
-        List<EmployeePayrollData> checkList = employeePayrollDBService.getEmployeePayrollData(name);
-        return checkList.get(0).equals(getEmployeePayrollData(name));
-
+        List<EmployeePayrollData> employeePayrollDataList = employeePayrollDBService.getEmployeePayrollData(name);
+        return employeePayrollDataList.get(0).equals(getEmployee_payroll_Data(name));
     }
 
-    /**
-     * Retrieve the data for a particular date range
-     *
-     * @param date1
-     * @param date2
-     * @return
-     */
-    public List<EmployeePayrollData> getEmployeesInDateRange(String date1, String date2) {
-        List<EmployeePayrollData> employeesInGivenDateRangeList = employeePayrollDBService
-                .getEmployeesInGivenDateRangeDB(date1, date2);
-        return employeesInGivenDateRangeList;
-    }
 
     /**
-     * read the Average Salary group ByGender using Hashmap
-     *
-     * @param ioService
-     * @return
+     * create a main method,all program execute in main method
+     * @param args no arguments,its default.
      */
-    public Map<String, Double> readAverageSalaryByGender(IOService ioService) {
-        if (ioService.equals(IOService.DB_IO))
-            return employeePayrollDBService.getAverageSalaryByGender();
-        return null;
+    public static void main(String[] args) {
+        /**
+         * create a list object name as  employeePayrollList
+         * here EmployeePayrollData is a class.
+         */
+        List<EmployeePayrollData> employeePayrollList = new ArrayList<EmployeePayrollData>();
+        /**
+         * create a object for  EmployeePayrollService class ,object name as employeePayrollService
+         */
+        EmployeePayrollService employeePayrollService = new   EmployeePayrollService(employeePayrollList);
+        /**
+         * create a scanner class object name as object is consoleInputReader
+         */
+        Scanner consoleInputReader = new Scanner(System.in);
+        /**
+         * calling readEmployeeData method from employeePayrollService object
+         */
+        employeePayrollService.readEmployeeData(consoleInputReader);
+        /**
+         * calling writeEmployeeData method from employeePayrollService object
+         */
+        employeePayrollService.writeEmployeeData(IOService.CONSOLE_IO);
     }
+
+
 }

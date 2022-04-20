@@ -26,7 +26,7 @@ public class DBDemo {
          * It is the password given by the user at the time of installing the mysql
          * database
          */
-        String password = "ashvini26007";
+        String password = "mysql123";
         Connection connection;
 
         /**
